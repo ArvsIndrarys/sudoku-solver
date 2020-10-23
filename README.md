@@ -11,8 +11,8 @@ As its name tell, this project should resolve any sudoku grid. This work is curr
 
 ## Status 
 
-- [ ] setup 
-- [ ] in development
+- [x] setup 
+- [x] in development
 - [ ] easy grids
 - [ ] medium grids
 - [ ] hard grids
