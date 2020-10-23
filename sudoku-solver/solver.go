@@ -3,100 +3,112 @@ package sudokusolver
 import (
 	"errors"
 	"fmt"
-	"log"
 )
 
 type grid struct {
-	group  map[int][]int
-	line   map[int][]int
-	column map[int][]int
+	Groups  map[int][]int
+	Lines   map[int][]int
+	Columns map[int][]int
 }
 
 var possibleValues = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-func solve(input [][]int) {
+func generateGrid(input [][]int) (grid, error) {
 
-	err := verifyInputData(input)
+	columns, err := generateColumns(input)
 	if err != nil {
-		log.Fatalln(err)
+		return grid{}, err
 	}
+	lines, err := generateLines(input)
+	if err != nil {
+		return grid{}, err
+	}
+	groups, err := generateGroups(input)
+	if err != nil {
+		return grid{}, err
+	}
+	return grid{
+		Columns: columns,
+		Lines:   lines,
+		Groups:  groups,
+	}, nil
 }
 
-func generateLines(input [][]int) map[int][]int {
+func generateLines(input [][]int) (map[int][]int, error) {
 	lines := make(map[int][]int)
 
 	for i, line := range input {
 
 		if len(line) != 9 {
-			log.Fatalf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line))
+			return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line)))
 		}
 
-		duplicate := getFirstDuplicateInLine(line)
-		if duplicate != 0 {
-			log.Fatalf("Found duplicate at line %d: %d", i+1, duplicate)
+		if err := checkLineCorrectness(line); err != nil {
+			return map[int][]int{}, err
 		}
 
 		lines[i] = line
 	}
 
-	return lines
+	return lines, nil
 }
 
-func generateColumns(input [][]int) map[int]int {
+func generateColumns(input [][]int) (map[int][]int, error) {
 
 	if len(input) != 9 {
-		log.Fatalf("Wrong number of columns. Expected 9, got %d", len(input))
+		return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of columns. Expected 9, got %d", len(input)))
 	}
 
 	columns := make(map[int][]int)
 
-}
+	// columns map creation
+	for _, line := range input {
 
-func generateGroups(input [][]int) {
-
-}
-
-func generateGrid(input [][]int) grid {
-
-	return grid{
-		group:   generateGroups(input),
-		line:    generateLines(input),
-		columns: generateColumns(input),
-	}
-}
-
-func verifyInputData(input [][]int) error {
-
-	if len(input) != 9 {
-		return errors.New(fmt.Sprintf("Wrong number of lines on the grid. Expected 9, got %d", len(input)))
+		for columnIndex, cellValue := range line {
+			columns[columnIndex] = append(columns[columnIndex], cellValue)
+		}
 	}
 
-	for i, line := range input {
+	// columns map verification
+	for i, line := range columns {
 		if len(line) != 9 {
-			return errors.New(fmt.Sprintf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line)))
+			return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line)))
+		}
+
+		if err := checkLineCorrectness(line); err != nil {
+			return map[int][]int{}, err
 		}
 	}
 
-	return checkDuplicatesInGrid(input)
+	return columns, nil
 }
 
-func checkDuplicatesInGrid(input [][]int) error {
+// generateGroups() call MUST BE AFTER generateColumns() and generateLines()
+//as they already check data correctness, allowing us to avoid these checks
+func generateGroups(input [][]int) (map[int][]int, error) {
+	groups := make(map[int][]int)
 
-	// check on lines
-	for _, v := range input {
+	// We slice the line 3 elements by 3 elements
+	// As line has 9 elements, we iterate 3 times
+	for i := 0; i < 3; i++ {
 
-		err := checkLineCorrectness(v)
-		if err != nil {
-			log.Fatal(err)
+		// We slice the columns 3 by 3 to get the 3x3 square and add it to our group
+		for j := 0; j < 3; j++ {
+			groups[3*i+j] = append(groups[3*i+j], input[3*i][3*j:3*j+3]...)
+			groups[3*i+j] = append(groups[3*i+j], input[3*i+1][3*j:3*j+3]...)
+			groups[3*i+j] = append(groups[3*i+j], input[3*i+2][3*j:3*j+3]...)
 		}
-
 	}
 
-	// check on columns
+	// check the correctness of our groups
+	for _, group := range groups {
 
-	// check in squares
+		if err := checkLineCorrectness(group); err != nil {
+			return map[int][]int{}, err
+		}
+	}
 
-	return nil
+	return groups, nil
 }
 
 func checkLineCorrectness(line []int) error {
@@ -116,7 +128,7 @@ func checkLineCorrectness(line []int) error {
 
 		if v != 0 {
 			if !checkExist(elements, v) {
-				return errors.New(fmt.Sprintf("Duplicate %d found in line", v, input))
+				return errors.New(fmt.Sprintf("Duplicate %d found in line %v", v, line))
 			}
 
 			elements = removeValue(elements, v)
@@ -186,4 +198,21 @@ func checkExist(slice []int, value int) bool {
 		}
 	}
 	return false
+}
+
+func Map2DToString(grid map[int][]int) string {
+	s := ""
+	for _, v := range grid {
+		s = s + fmt.Sprintf("%v\n", v)
+	}
+
+	return s
+}
+func Array2DToString(grid [][]int) string {
+	s := ""
+	for _, v := range grid {
+		s = s + fmt.Sprintf("%v\n", v)
+	}
+
+	return s
 }
