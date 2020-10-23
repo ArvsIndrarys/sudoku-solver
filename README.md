@@ -13,6 +13,7 @@ As its name tell, this project should resolve any sudoku grid. This work is curr
 
 - [x] setup 
 - [x] in development
+- [ ] grid parsing
 - [ ] easy grids
 - [ ] medium grids
 - [ ] hard grids
