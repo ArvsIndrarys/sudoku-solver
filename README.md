@@ -1,3 +1,6 @@
+
+[![ArvsIndrarys](https://circleci.com/gh/ArvsIndrarys/sudoku-solver.svg?style=svg)]()
+
 # sudoku-solver
 Sudoku solver -- will later be converted to an android app to recognize any grid and solve it on the camera (or in a photo/picture)
 
