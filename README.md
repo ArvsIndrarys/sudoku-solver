@@ -1,5 +1,5 @@
 
-[![ArvsIndrarys](https://circleci.com/gh/ArvsIndrarys/sudoku-solver.svg?style=svg)]()
+[![ArvsIndrarys](https://circleci.com/gh/ArvsIndrarys/sudoku-solver.svg?style=svg)](https://app.circleci.com/pipelines/github/ArvsIndrarys/sudoku-solver)
 
 # sudoku-solver
 Sudoku solver -- will later be converted to an android app to recognize any grid and solve it on the camera (or in a photo/picture)
