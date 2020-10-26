@@ -5,116 +5,154 @@ import (
 	"fmt"
 )
 
-type grid struct {
-	Groups  map[int][]int
-	Lines   map[int][]int
-	Columns map[int][]int
-}
-
 var possibleValues = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
+type grid struct {
+	Entries []entry
+}
+
+type entry struct {
+	value          int
+	possibleValues []int
+	indexLine      int
+	indexColumn    int
+}
+
+func (g *grid) toString() string {
+	s := ""
+	for i := 0; i < 9; i++ {
+		s += fmt.Sprintf("%v\n", g.getLine(i))
+	}
+	return s + "\n"
+}
+
+func (g *grid) getEntry(position int) entry {
+	return g.Entries[position]
+}
+
+func newEntry(indexL, indexC, value int) entry {
+
+	e := entry{
+		value:          0,
+		possibleValues: possibleValues,
+		indexLine:      indexL,
+		indexColumn:    indexC,
+	}
+
+	if value != 0 {
+		e.value = value
+		e.possibleValues = []int{value}
+	}
+
+	return e
+}
+
+func (g *grid) setEntryValue(position, value int) {
+	e := g.Entries[position]
+	e.value = value
+	e.possibleValues = []int{value}
+}
+
+func (g *grid) removeEntryPossibleValues(position int, impossibleValues []int) {
+	e := g.Entries[position]
+	for _, impossible := range impossibleValues {
+		removeValue(e.possibleValues, impossible)
+	}
+}
+
+func (g *grid) getLine(index int) []int {
+
+	values := make([]int, 0, 9)
+	for _, entry := range g.Entries[9*index : 9*index+9] {
+		values = append(values, entry.value)
+	}
+
+	return values
+}
+
+func (g *grid) getColumn(index int) []int {
+	values := make([]int, 0, 9)
+
+	for i, entry := range g.Entries {
+		if i%9-index == 0 {
+			values = append(values, entry.value)
+		}
+	}
+
+	return values
+}
+
+func (g *grid) getSquare(index int) []int {
+	selectedEntries := make([]entry, 0, 9)
+
+	values := make([]int, 0, 9)
+
+	offset := 0
+	switch {
+	case index > 2 && index <= 5:
+		offset = 27 + (index-3)*3
+	case index > 5:
+		offset = 54 + (index-6)*3
+	default:
+		offset = index * 3
+	}
+
+	selectedEntries = append(selectedEntries, g.Entries[offset:offset+3]...)
+	selectedEntries = append(selectedEntries, g.Entries[offset+9:offset+12]...)
+	selectedEntries = append(selectedEntries, g.Entries[offset+18:offset+21]...)
+
+	for _, e := range selectedEntries {
+		values = append(values, e.value)
+	}
+	return values
+}
+
+func (g *grid) getEntryPossibleValues(position int) []int {
+	return g.Entries[position].possibleValues
+}
+
+func generateEntries(input [][]int) []entry {
+
+	entries := make([]entry, 0, 81)
+
+	for indexLine, line := range input {
+		for indexColumn, element := range line {
+			entries = append(entries, newEntry(indexLine, indexColumn, element))
+		}
+	}
+
+	return entries
+}
 func generateGrid(input [][]int) (grid, error) {
 
-	columns, err := generateColumns(input)
-	if err != nil {
-		return grid{}, err
+	g := grid{
+		Entries: generateEntries(input),
 	}
-	lines, err := generateLines(input)
-	if err != nil {
-		return grid{}, err
+
+	var err error
+
+	for i := 0; i < 9; i++ {
+		err = checkCorrectness(g.getColumn(i))
+		if err != nil {
+			return grid{}, err
+		}
+		err = checkCorrectness(g.getLine(i))
+		if err != nil {
+			return grid{}, err
+		}
+		err = checkCorrectness(g.getSquare(i))
+		if err != nil {
+			return grid{}, err
+		}
 	}
-	groups, err := generateGroups(input)
-	if err != nil {
-		return grid{}, err
-	}
-	return grid{
-		Columns: columns,
-		Lines:   lines,
-		Groups:  groups,
-	}, nil
+
+	return g, nil
 }
 
-func generateLines(input [][]int) (map[int][]int, error) {
-	lines := make(map[int][]int)
-
-	for i, line := range input {
-
-		if len(line) != 9 {
-			return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line)))
-		}
-
-		if err := checkLineCorrectness(line); err != nil {
-			return map[int][]int{}, err
-		}
-
-		lines[i] = line
-	}
-
-	return lines, nil
-}
-
-func generateColumns(input [][]int) (map[int][]int, error) {
-
-	if len(input) != 9 {
-		return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of columns. Expected 9, got %d", len(input)))
-	}
-
-	columns := make(map[int][]int)
-
-	// columns map creation
-	for _, line := range input {
-
-		for columnIndex, cellValue := range line {
-			columns[columnIndex] = append(columns[columnIndex], cellValue)
-		}
-	}
-
-	// columns map verification
-	for i, line := range columns {
-		if len(line) != 9 {
-			return map[int][]int{}, errors.New(fmt.Sprintf("Wrong number of elements at line %d. Expected 9, got %d", i+1, len(line)))
-		}
-
-		if err := checkLineCorrectness(line); err != nil {
-			return map[int][]int{}, err
-		}
-	}
-
-	return columns, nil
-}
-
-// generateGroups() call MUST BE AFTER generateColumns() and generateLines()
-//as they already check data correctness, allowing us to avoid these checks
-func generateGroups(input [][]int) (map[int][]int, error) {
-	groups := make(map[int][]int)
-
-	// We slice the line 3 elements by 3 elements
-	// As line has 9 elements, we iterate 3 times
-	for i := 0; i < 3; i++ {
-
-		// We slice the columns 3 by 3 to get the 3x3 square and add it to our group
-		for j := 0; j < 3; j++ {
-			groups[3*i+j] = append(groups[3*i+j], input[3*i][3*j:3*j+3]...)
-			groups[3*i+j] = append(groups[3*i+j], input[3*i+1][3*j:3*j+3]...)
-			groups[3*i+j] = append(groups[3*i+j], input[3*i+2][3*j:3*j+3]...)
-		}
-	}
-
-	// check the correctness of our groups
-	for _, group := range groups {
-
-		if err := checkLineCorrectness(group); err != nil {
-			return map[int][]int{}, err
-		}
-	}
-
-	return groups, nil
-}
-
-func checkLineCorrectness(line []int) error {
+func checkCorrectness(line []int) error {
 
 	if len(line) != 9 {
-		return errors.New(fmt.Sprintf("Wrong length of line/column. Expected 9, got %d", len(line)))
+		return errors.New(fmt.Sprintf("Wrong length of line/column/square. Expected 9, got %d", len(line)))
 	}
 
 	elements := make([]int, 9)
@@ -128,7 +166,7 @@ func checkLineCorrectness(line []int) error {
 
 		if v != 0 {
 			if !checkExist(elements, v) {
-				return errors.New(fmt.Sprintf("Duplicate %d found in line %v", v, line))
+				return errors.New(fmt.Sprintf("Duplicate %d found in line/column/square %v", v, line))
 			}
 
 			elements = removeValue(elements, v)
@@ -198,21 +236,4 @@ func checkExist(slice []int, value int) bool {
 		}
 	}
 	return false
-}
-
-func Map2DToString(grid map[int][]int) string {
-	s := ""
-	for _, v := range grid {
-		s = s + fmt.Sprintf("%v\n", v)
-	}
-
-	return s
-}
-func Array2DToString(grid [][]int) string {
-	s := ""
-	for _, v := range grid {
-		s = s + fmt.Sprintf("%v\n", v)
-	}
-
-	return s
 }
