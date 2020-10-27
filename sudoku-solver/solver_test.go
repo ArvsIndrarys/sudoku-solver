@@ -44,7 +44,7 @@ var (
 		{6, 3, 9, 1, 4, 7, 8, 5, 2},
 	}
 
-	correctGridAsGroups = [][]int{
+	correctGridAsSquares = [][]int{
 		{5, 4, 3, 2, 1, 9, 8, 7, 6},
 		{9, 2, 1, 6, 8, 7, 3, 5, 4},
 		{8, 7, 6, 5, 4, 3, 2, 1, 9},
@@ -176,12 +176,12 @@ func TestGenerateColumnsFromEntries(t *testing.T) {
 	}
 }
 
-func TestGenerateGroupsFromEntries(t *testing.T) {
+func TestGenerateSquaresFromEntries(t *testing.T) {
 	grid := generateGridMock(correctGrid)
 
-	for i, group := range correctGridAsGroups {
-		if !reflect.DeepEqual(grid.getSquare(i), group) {
-			t.Errorf("Should have extracted the right group (%d). Expected %v, got %v", i+1, group, grid.getSquare(i))
+	for i, square := range correctGridAsSquares {
+		if !reflect.DeepEqual(grid.getSquare(i), square) {
+			t.Errorf("Should have extracted the right square (%d). Expected %v, got %v", i+1, square, grid.getSquare(i))
 		}
 	}
 }
@@ -202,7 +202,7 @@ func TestGenerateGrid(t *testing.T) {
 			t.Errorf("Should have produced correct column at index %d: expected %v, got %v", i, column, result.getColumn(i))
 		}
 	}
-	for i, square := range correctGridAsGroups {
+	for i, square := range correctGridAsSquares {
 		if !reflect.DeepEqual(square, result.getSquare(i)) {
 			t.Errorf("Should have produced correct square at index %d: expected %v, got %v", i, square, result.getSquare(i))
 		}
