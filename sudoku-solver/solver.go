@@ -21,9 +21,22 @@ type entry struct {
 func (g *grid) String() string {
 	s := ""
 	for i := 0; i < 9; i++ {
-		s += fmt.Sprintf("%v\n", g.getLine(i))
+
+		if i%3 == 0 {
+			s += "|-----------------------------|\n"
+		}
+
+		for j, value := range g.getLine(i) {
+			if j%3 == 0 {
+				s += "|"
+			}
+			s += fmt.Sprintf(" %d ", value)
+		}
+		s += "|\n"
 	}
-	return s + "\n"
+
+	s += "|-----------------------------|"
+	return s
 }
 
 func (g *grid) getEntry(position int) entry {
