@@ -18,7 +18,7 @@ type entry struct {
 	indexColumn    int
 }
 
-func (g *grid) toString() string {
+func (g *grid) String() string {
 	s := ""
 	for i := 0; i < 9; i++ {
 		s += fmt.Sprintf("%v\n", g.getLine(i))
