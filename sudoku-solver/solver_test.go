@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// string representation
 const correctGridAsSudoku = `|-----------------------------|
 | 5  4  3 | 9  2  1 | 8  7  6 |
 | 2  1  9 | 6  8  7 | 5  4  3 |
@@ -23,6 +24,8 @@ const correctGridAsSudoku = `|-----------------------------|
 |-----------------------------|`
 
 var (
+
+	// line verification
 	correctOneLineOrdered   = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	correctOneLineUnordered = []int{9, 6, 3, 2, 1, 7, 5, 8, 4}
 	correctOneLineOnlyHoles = []int{0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -34,6 +37,19 @@ var (
 	incorrectOneLineWithNumberSup9         = []int{9, 6, 0, 2, 1, 7, 19, 4, 4}
 	incorrectOneLineWithNumberInf0         = []int{9, 6, 0, 2, 1, 7, -5, 4, 4}
 
+	// grid string input
+	correctGridAsString = `5, 4, 3, 9, 2, 1, 8, 7, 6,
+		2, 1, 9, 6, 8, 7, 5, 4, 3,
+		8, 7, 6, 3, 5, 4, 2, 1, 9,
+		9, 8, 7, 4, 6, 5, 3, 2, 1,
+		3, 2, 1, 7, 9, 8, 6, 5, 4,
+		6, 5, 4, 1, 3, 2, 9, 8, 7,
+		7, 6, 5, 2, 4, 3, 1, 9, 8,
+		4, 3, 2, 8, 1, 9, 7, 6, 5,
+		1, 9, 8, 5, 7, 6, 4, 3, 2
+	`
+
+	// grid constitution
 	correctGrid = [][]int{
 		{5, 4, 3, 9, 2, 1, 8, 7, 6},
 		{2, 1, 9, 6, 8, 7, 5, 4, 3},
@@ -118,6 +134,20 @@ var (
 	}
 
 	gridMock grid
+
+	// resolution
+	arrayWithOneMissingValue = []int{6, 5, 4, 1, 3, 2, 0, 8, 7}
+	simpleMissingValueGrid   = [][]int{
+		{5, 4, 3, 9, 2, 1, 8, 7, 6},
+		{2, 1, 9, 6, 8, 7, 5, 4, 3},
+		{8, 7, 6, 3, 5, 4, 2, 1, 9},
+		{9, 8, 7, 4, 6, 5, 3, 2, 1},
+		{3, 2, 1, 7, 9, 8, 6, 5, 4},
+		{6, 5, 4, 1, 3, 2, 0, 8, 7},
+		{7, 6, 5, 2, 4, 3, 1, 9, 8},
+		{4, 3, 2, 8, 1, 9, 7, 6, 5},
+		{1, 9, 8, 5, 7, 6, 4, 3, 2},
+	}
 )
 
 //DUPLICATE
@@ -202,6 +232,29 @@ func TestGenerateSquaresFromEntries(t *testing.T) {
 
 func TestGenerateGrid(t *testing.T) {
 	result, err := generateGrid(correctGrid)
+	if err != nil {
+		t.Errorf("Should not have found error on correct grid\n%s", err)
+	}
+
+	for i, line := range correctGrid {
+		if !reflect.DeepEqual(line, result.getLine(i)) {
+			t.Errorf("Should have produced correct line at index %d: expected %v, got %v", i, line, result.getLine(i))
+		}
+	}
+	for i, column := range correctGridAsColumns {
+		if !reflect.DeepEqual(column, result.getColumn(i)) {
+			t.Errorf("Should have produced correct column at index %d: expected %v, got %v", i, column, result.getColumn(i))
+		}
+	}
+	for i, square := range correctGridAsSquares {
+		if !reflect.DeepEqual(square, result.getSquare(i)) {
+			t.Errorf("Should have produced correct square at index %d: expected %v, got %v", i, square, result.getSquare(i))
+		}
+	}
+}
+
+func TestGenerateGridFromString(t *testing.T) {
+	result, err := generateGridFromString(correctGridAsString)
 	if err != nil {
 		t.Errorf("Should not have found error on correct grid\n%s", err)
 	}

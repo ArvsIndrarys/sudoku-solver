@@ -3,6 +3,8 @@ package sudokusolver
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 var possibleValues = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -18,6 +20,71 @@ type entry struct {
 	indexColumn    int
 }
 
+// Grid Generation
+
+func generateGrid(input [][]int) (grid, error) {
+
+	g := grid{
+		Entries: generateEntries(input),
+	}
+
+	if err := g.checkCorrectness(); err != nil {
+		return grid{}, err
+	}
+
+	return g, nil
+}
+
+func generateGridFromString(input string) (grid, error) {
+
+	// input validation
+	if !strings.Contains(input, ",") {
+		return grid{}, errors.New("Missing ',' separator between each value")
+	}
+
+	tempArrayStr := strings.Split(input, ",")
+
+	if len(tempArrayStr) != 81 {
+		return grid{}, errors.New(fmt.Sprintf("Wrong input, did not get right amount of input in %v", tempArrayStr))
+	}
+
+	entries := make([]entry, 0, 81)
+
+	for i, char := range tempArrayStr {
+
+		value, err := strconv.Atoi(strings.TrimSpace(char))
+		if err != nil || value < 0 || value > 9 {
+			return grid{}, errors.New(fmt.Sprintf("Wrong character at index %d, expected number between 0 - 9, got %s", i, char))
+		}
+
+		entries = append(entries, newEntry(i%9, i/9, value))
+	}
+
+	g := grid{
+		Entries: entries,
+	}
+
+	if err := g.checkCorrectness(); err != nil {
+		return grid{}, err
+	}
+
+	return g, nil
+}
+
+func generateEntries(input [][]int) []entry {
+
+	entries := make([]entry, 0, 81)
+
+	for indexLine, line := range input {
+		for indexColumn, element := range line {
+			entries = append(entries, newEntry(indexLine, indexColumn, element))
+		}
+	}
+
+	return entries
+}
+
+// Grid representation
 func (g *grid) String() string {
 	s := ""
 	for i := 0; i < 9; i++ {
@@ -39,6 +106,7 @@ func (g *grid) String() string {
 	return s
 }
 
+// grid modification
 func (g *grid) getEntry(position int) entry {
 	return g.Entries[position]
 }
@@ -124,68 +192,24 @@ func (g *grid) getEntryPossibleValues(position int) []int {
 	return g.Entries[position].possibleValues
 }
 
-func generateEntries(input [][]int) []entry {
-
-	entries := make([]entry, 0, 81)
-
-	for indexLine, line := range input {
-		for indexColumn, element := range line {
-			entries = append(entries, newEntry(indexLine, indexColumn, element))
-		}
-	}
-
-	return entries
-}
-func generateGrid(input [][]int) (grid, error) {
-
-	g := grid{
-		Entries: generateEntries(input),
-	}
-
+func (g *grid) checkCorrectness() error {
 	var err error
-
 	for i := 0; i < 9; i++ {
 		err = checkCorrectness(g.getColumn(i))
 		if err != nil {
-			return grid{}, err
+			return err
 		}
 		err = checkCorrectness(g.getLine(i))
 		if err != nil {
-			return grid{}, err
+			return err
 		}
 		err = checkCorrectness(g.getSquare(i))
 		if err != nil {
-			return grid{}, err
+			return err
 		}
 	}
 
-	return g, nil
-}
-
-func checkCorrectness(line []int) error {
-
-	if len(line) != 9 {
-		return errors.New(fmt.Sprintf("Wrong length of line/column/square. Expected 9, got %d", len(line)))
-	}
-
-	elements := make([]int, 9)
-	copy(elements, possibleValues)
-
-	for _, v := range line {
-
-		if v < 0 || v > 9 {
-			return errors.New(fmt.Sprintf("Wrong data present in grid: %d", v))
-		}
-
-		if v != 0 {
-			if !checkExist(elements, v) {
-				return errors.New(fmt.Sprintf("Duplicate %d found in line/column/square %v", v, line))
-			}
-
-			elements = removeValue(elements, v)
-		}
-	}
-	return nil
+	return err
 }
 
 func resolveLine(line []int) []int {
@@ -215,38 +239,4 @@ func resolveLine(line []int) []int {
 	line[index] = possible[0]
 	return line
 
-}
-
-func removeValue(slice []int, value int) []int {
-
-	for i, v := range slice {
-		if v == value {
-			slice[i] = slice[len(slice)-1]
-
-			tempSlice := slice[:len(slice)-1]
-			return tempSlice
-		}
-	}
-
-	return nil
-}
-
-func replaceValue(slice []int, index, value int) []int {
-
-	for i, v := range slice {
-		if v == value {
-			return append(slice[:i], slice[i+1:]...)
-		}
-	}
-
-	return nil
-}
-
-func checkExist(slice []int, value int) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
 }
