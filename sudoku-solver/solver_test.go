@@ -150,14 +150,6 @@ var (
 	}
 )
 
-//DUPLICATE
-func generateGridMock(input [][]int) grid {
-
-	return grid{
-		Entries: generateEntries(input),
-	}
-}
-
 func TestOneLine(t *testing.T) {
 
 	if checkCorrectness(correctOneLineOrdered) != nil {
@@ -201,7 +193,7 @@ func TestOneLine(t *testing.T) {
 }
 
 func TestGenerateLinesFromEntries(t *testing.T) {
-	grid := generateGridMock(correctGrid)
+	grid, _ := generateGrid(correctGrid)
 
 	for i, line := range correctGrid {
 		if !reflect.DeepEqual(grid.getLine(i), line) {
@@ -211,7 +203,7 @@ func TestGenerateLinesFromEntries(t *testing.T) {
 }
 
 func TestGenerateColumnsFromEntries(t *testing.T) {
-	grid := generateGridMock(correctGrid)
+	grid, _ := generateGrid(correctGrid)
 
 	for i, column := range correctGridAsColumns {
 		if !reflect.DeepEqual(grid.getColumn(i), column) {
@@ -221,7 +213,7 @@ func TestGenerateColumnsFromEntries(t *testing.T) {
 }
 
 func TestGenerateSquaresFromEntries(t *testing.T) {
-	grid := generateGridMock(correctGrid)
+	grid, _ := generateGrid(correctGrid)
 
 	for i, square := range correctGridAsSquares {
 		if !reflect.DeepEqual(grid.getSquare(i), square) {
@@ -279,12 +271,12 @@ func TestGenerateGridFromString(t *testing.T) {
 func TestFailuresOnGenerateGrid(t *testing.T) {
 
 	_, err := generateGrid(incorrectGridWrongNumberOfLines)
-	expected := errors.New(fmt.Sprintf("Wrong length of line/column/square. Expected 9, got %d", len(incorrectGridWrongNumberOfLines)))
+	expected := errors.New(fmt.Sprintf("Wrong number of lines on input. Expected 9, got %d", len(incorrectGridWrongNumberOfLines)))
 	if err.Error() != expected.Error() {
 		t.Errorf("Should have detected wrong number of line error on incorrect grid: expected %s, got %s", expected, err)
 	}
-	_, err = generateGrid(incorrectGridWrongNumberOfLines)
-	expected = errors.New(fmt.Sprintf("Wrong length of line/column/square. Expected 9, got %d", len(incorrectGridWrongNumberOfColumns[0])))
+	_, err = generateGrid(incorrectGridWrongNumberOfColumns)
+	expected = errors.New(fmt.Sprintf("Wrong number of columns at line %d on input. Expected 9, got %d", 0, len(incorrectGridWrongNumberOfColumns[0])))
 	if err.Error() != expected.Error() {
 		t.Errorf("Should have detected wrong number of line error on incorrect grid: expected %s, got %s", expected, err)
 	}
@@ -301,7 +293,7 @@ func TestFailuresOnGenerateGrid(t *testing.T) {
 }
 
 func TestPublishResultAsString(t *testing.T) {
-	grid := generateGridMock(correctGrid)
+	grid, _ := generateGrid(correctGrid)
 
 	if grid.String() != correctGridAsSudoku {
 		t.Errorf("Wrong representation of the grid: expected\n%s\ngot\n%s", correctGridAsSudoku, grid.String())
