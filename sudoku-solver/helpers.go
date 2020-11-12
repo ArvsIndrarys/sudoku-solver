@@ -9,25 +9,11 @@ func removeValue(slice []int, value int) []int {
 
 	for i, v := range slice {
 		if v == value {
-			slice[i] = slice[len(slice)-1]
-
-			tempSlice := slice[:len(slice)-1]
-			return tempSlice
+			slice[i] = slice[0]
+			return slice[1:]
 		}
 	}
-
-	return nil
-}
-
-func replaceValue(slice []int, index, value int) []int {
-
-	for i, v := range slice {
-		if v == value {
-			return append(slice[:i], slice[i+1:]...)
-		}
-	}
-
-	return nil
+	return slice
 }
 
 func checkExist(slice []int, value int) bool {
@@ -45,8 +31,7 @@ func checkCorrectness(line []int) error {
 		return errors.New(fmt.Sprintf("Wrong length of line/column/square. Expected 9, got %d", len(line)))
 	}
 
-	elements := make([]int, 9)
-	copy(elements, possibleValues)
+	elements := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 	for _, v := range line {
 
